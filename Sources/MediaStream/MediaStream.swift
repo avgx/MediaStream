@@ -68,5 +68,10 @@ public class MediaStream {
         newMessageSink?.finish()
         newMessageSink = nil
     }
+    
+    public init() {
+        self.newMessageSink = nil
+        self.ws = nil
+    }
 }
 
