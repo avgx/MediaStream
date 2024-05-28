@@ -16,7 +16,7 @@ extension MediaStream {
             let stats = Stats()
             
             let decoder = VideoDecoder(config: .init(outputBufferCount: 30))
-            let fmp4 = VideoDecoderFmp4Adaptor(videoDecoder: decoder, uuid: sid, logger: nil)
+            let fmp4 = VideoDecoderFmp4Adaptor(videoDecoder: decoder, uuid: sid, logger: logger)
             
             let delegate = URLSessionDataStreamDelegate(received: { [stats] data in
                 do {
