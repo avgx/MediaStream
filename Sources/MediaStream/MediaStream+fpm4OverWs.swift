@@ -45,7 +45,7 @@ extension MediaStream {
                         if Task.isCancelled {
                             break
                         }
-                        try fmp4.enqueue(data: frame.payload)
+                        try fmp4.enqueue(data: frame.payload, ts: frame.ts)
                     }
                     logger?.log(level: .info, "\(sid) ws read done")
                     try ws.disconnect()
@@ -58,8 +58,8 @@ extension MediaStream {
             }
             
             let decodeTask = Task { [start, stats] in
-                for await decodedSampleBuffer in decoder.decodedSampleBuffers {
-                    logger?.log(level: .info, "\(sid) decoded frame \(stats.decodedNumber) \(sid) at \(-start.timeIntervalSinceNow)")
+                for await (decodedSampleBuffer, ts) in decoder.decodedSampleBuffers {
+                    logger?.log(level: .info, "\(sid) decoded frame \(stats.decodedNumber) \(sid) at \(-start.timeIntervalSinceNow) | \(stats.ts?.timeIntervalSince1970) \(ts?.timeIntervalSince1970)")
                     if Task.isCancelled {
                         break
                     }
@@ -74,7 +74,7 @@ extension MediaStream {
                     if let imageBuffer = decodedSampleBuffer.imageBuffer {
                         let ci = CIImage(cvImageBuffer: imageBuffer)
                         
-                        let decodedFrame: DecodedFrame = .init(streamId: sid, ts: stats.ts, frame: ci, bytesLoaded: stats.bytesLoaded, timeSinceStart: -start.timeIntervalSinceNow, decodedNumber: stats.decodedNumber)
+                        let decodedFrame: DecodedFrame = .init(streamId: sid, ts: ts, frame: ci, bytesLoaded: stats.bytesLoaded, timeSinceStart: -start.timeIntervalSinceNow, decodedNumber: stats.decodedNumber)
                         let res = continuation.yield(Message.frame(decodedFrame))
                         switch res {
                         case .enqueued(let remaining):

@@ -23,7 +23,7 @@ extension MediaStream {
                     //print("URLSessionDataStream \(uuid) \(data.count)")
                     stats.bytesLoaded += data.count
                     stats.bytesPerSecond = Double(stats.bytesLoaded) / Double(-start.timeIntervalSinceNow)
-                    try fmp4.enqueue(data: data)
+                    try fmp4.enqueue(data: data, ts: nil)
                 } catch {
                     print(error)
                     continuation.finish()
@@ -35,7 +35,7 @@ extension MediaStream {
             })
             
             let decodeTask = Task { [stats] in
-                for await decodedSampleBuffer in decoder.decodedSampleBuffers {
+                for await (decodedSampleBuffer, ts) in decoder.decodedSampleBuffers {
                     logger?.log(level: .info, "decoded frame \(stats.decodedNumber) \(sid) at \(-start.timeIntervalSinceNow)")
                     if Task.isCancelled {
                         break
@@ -51,7 +51,7 @@ extension MediaStream {
                     if let imageBuffer = decodedSampleBuffer.imageBuffer {
                         let ci = CIImage(cvImageBuffer: imageBuffer)
                         
-                        let decodedFrame: DecodedFrame = .init(streamId: sid, ts: nil, frame: ci, bytesLoaded: stats.bytesLoaded, timeSinceStart: -start.timeIntervalSinceNow, decodedNumber: stats.decodedNumber)
+                        let decodedFrame: DecodedFrame = .init(streamId: sid, ts: ts, frame: ci, bytesLoaded: stats.bytesLoaded, timeSinceStart: -start.timeIntervalSinceNow, decodedNumber: stats.decodedNumber)
                         let res = continuation.yield(Message.frame(decodedFrame))
                         switch res {
                         case .enqueued(let remaining):
