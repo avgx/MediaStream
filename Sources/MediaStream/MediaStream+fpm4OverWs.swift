@@ -11,7 +11,9 @@ extension MediaStream {
     }
     
     @MediaStreamActor
-    public func fpm4OverWs(sid: UUID, request: URLRequest, cmd: Ws.Command, logger: Logger?) async -> AsyncStream<Message> {
+    public func fpm4OverWs(request: URLRequest, cmd: Ws.Command) async -> AsyncStream<Message> {
+        let sid = self.sid
+        let logger = self.logger
         return AsyncStream(bufferingPolicy: .bufferingNewest(25)) { continuation in
             let start = Date()
             

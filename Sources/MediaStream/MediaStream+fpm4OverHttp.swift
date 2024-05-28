@@ -5,7 +5,9 @@ import OSLog
 
 extension MediaStream {
     @MediaStreamActor
-    public func fpm4OverHttp(sid: UUID, request: URLRequest, logger: Logger?) async -> AsyncStream<Message> {
+    public func fpm4OverHttp(request: URLRequest) async -> AsyncStream<Message> {
+        let sid = self.sid
+        let logger = self.logger
         return AsyncStream(bufferingPolicy: .bufferingNewest(25)) { continuation in
             let start = Date()
             
@@ -65,7 +67,7 @@ extension MediaStream {
             
             continuation.yield(Message.connecting)
             let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-            
+            self.session = session
             let socket = session.dataTask(with: request)
             socket.resume()
             

@@ -1,6 +1,7 @@
 import Foundation
 import Get
 import CoreImage
+import OSLog
 
 public class MediaStream {
 //    func mjpeg_over_http(UUID, URLRequest)
@@ -63,15 +64,29 @@ public class MediaStream {
     
     var newMessageSink: AsyncStream<Message>.Continuation?
     weak var ws: WebSocket2?
+    weak var session: URLSession?
+    
+    let logger: Logger?
+    public let sid: UUID
     
     public func finish() {
         newMessageSink?.finish()
         newMessageSink = nil
+        session?.finishTasksAndInvalidate()
+        session = nil
     }
     
-    public init() {
+    public init(sid: UUID, logger: Logger?) {
+        self.sid = sid
+        self.logger = logger
         self.newMessageSink = nil
         self.ws = nil
+        self.session = nil
+        logger?.log("\(String(describing: self)) \(self.sid)")
+    }
+    
+    deinit {
+        logger?.log("~\(String(describing: self)) \(self.sid)")
     }
 }
 
