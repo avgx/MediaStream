@@ -94,27 +94,7 @@ extension Ws {
         Command(method: .stop, streamId: streamId, endpoint: nil, format: nil, keyFrames: nil, speed: nil, archive: nil, forward: nil, width: nil, height: nil, vc: nil, beginTime: nil)
     }
     
-//    public struct Frame {
-//        let streamId: UUID
-//        let ts: Date
-//        let isSubtitles: Bool
-//        let payload: Data
-//    }
-//    
-//    public struct DecodedFrame {
-//        let streamId: UUID
-//        let ts: Date?
-//        let frame: CIImage
-//        let frameNumber: Int
-//        let bytesLoaded: Int
-//        let decodedNumber: Int
-//        
-//        public var isStopped: Bool {
-//            return (ts ?? Date()) > .distantFuture
-//        }
-//    }
-    
-    public static func parse(data: Data) throws -> MediaStream.Frame {
+    static func parse(data: Data) throws -> MediaStream.Frame {
         
         // in AO 1.0 there is one leading zero bytes
         // in AO 2.0 there are two leading zero bytes
@@ -234,7 +214,7 @@ let sample = """
 """
 
 /// https://stackoverflow.com/questions/32769929/convert-bytes-uint8-array-to-int-in-swift
-public extension UnsignedInteger {
+extension UnsignedInteger {
     init(_ bytes: [UInt8]) {
         precondition(bytes.count <= MemoryLayout<Self>.size)
 

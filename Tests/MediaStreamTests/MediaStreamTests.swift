@@ -1,9 +1,9 @@
 import XCTest
-import OSLog
+import Logging
 @testable import MediaStream
 
 final class MediaStreamTests: XCTestCase {
-    let logger: Logger = Logger(subsystem: "MediaStream", category: "MediaStreamTests")
+    let logger: Logger = Logger(label: "MediaStream")//Logger(subsystem: "MediaStream", category: "MediaStreamTests")
     
     func test_fpm4OverHttp() async throws {
         let uuid = UUID()

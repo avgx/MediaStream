@@ -16,14 +16,23 @@ let package = Package(
     dependencies: [
       .package(url: "https://github.com/avgx/Transcoding", branch: "main"),
       .package(url: "https://github.com/avgx/Get", branch: "main"),
+      .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "MediaStream", dependencies: [ "Transcoding", "Get" ]),
+            name: "MediaStream", 
+            dependencies: [
+                "Transcoding", 
+                "Get",
+                .product(name: "Logging", package: "swift-log")
+            ]),
         .testTarget(
             name: "MediaStreamTests",
-            dependencies: ["MediaStream"]),
+            dependencies: [
+                "MediaStream",
+                .product(name: "Logging", package: "swift-log")
+            ]),
     ]
 )

@@ -1,14 +1,12 @@
 import Foundation
 import Get
 import CoreImage
-import OSLog
+import Logging
 
 public class MediaStream {
-//    func mjpeg_over_http(UUID, URLRequest)
-//    func fpm4_over_ws(UUID, URLRequest, Parser)
-//    func mjpeg_over_ws(UUID, URLRequest, Parser)
-    
-    //func parse(data: Data) throws -> Frame
+//TODO:    func mjpeg_over_http(URLRequest)
+//TODO:    func mjpeg_over_ws(URLRequest, Parser)
+//TODO:    func mjpeg_snapshots_over_ws(URLRequest)
     
     public enum Message {
         case connecting
@@ -82,11 +80,11 @@ public class MediaStream {
         self.newMessageSink = nil
         self.ws = nil
         self.session = nil
-        logger?.log("\(String(describing: self)) \(self.sid)")
+        logger?.log(level: .info, "\(String(describing: self)) \(self.sid)")
     }
     
     deinit {
-        logger?.log("~\(String(describing: self)) \(self.sid)")
+        logger?.log(level: .info, "~\(String(describing: self)) \(self.sid)")
     }
 }
 

@@ -1,7 +1,7 @@
 import Foundation
 import CoreImage
 import Transcoding
-import OSLog
+import Logging
 
 extension MediaStream {
     @MediaStreamActor
@@ -16,7 +16,7 @@ extension MediaStream {
             let stats = Stats()
             
             let decoder = VideoDecoder(config: .init(outputBufferCount: 30))
-            let fmp4 = VideoDecoderFmp4Adaptor(videoDecoder: decoder, uuid: sid, logger: logger)
+            let fmp4 = VideoDecoderFmp4Adaptor(videoDecoder: decoder, uuid: sid, logger: nil)
             
             let delegate = URLSessionDataStreamDelegate(received: { [stats] data in
                 do {
@@ -29,14 +29,14 @@ extension MediaStream {
                     continuation.finish()
                 }
             }, validate: { _ in
-                logger?.log("\(sid) connect done \(-start.timeIntervalSinceNow)")
+                logger?.log(level: .info, "\(sid) connect done \(-start.timeIntervalSinceNow)")
                 continuation.yield(Message.connected)
                 return .allow
             })
             
             let decodeTask = Task { [stats] in
                 for await decodedSampleBuffer in decoder.decodedSampleBuffers {
-                    logger?.log("decoded frame \(stats.decodedNumber) \(sid) at \(-start.timeIntervalSinceNow)")
+                    logger?.log(level: .info, "decoded frame \(stats.decodedNumber) \(sid) at \(-start.timeIntervalSinceNow)")
                     if Task.isCancelled {
                         break
                     }
@@ -44,7 +44,7 @@ extension MediaStream {
                     stats.decodedNumber += 1
                     
                     if decoder.isBufferFull {
-                        logger?.log("skip decoded frame for \(sid) due to isBufferFull")
+                        logger?.log(level: .info, "skip decoded frame for \(sid) due to isBufferFull")
                         continue
                     }
                     
@@ -55,14 +55,14 @@ extension MediaStream {
                         let res = continuation.yield(Message.frame(decodedFrame))
                         switch res {
                         case .enqueued(let remaining):
-                            logger?.log("\(sid) remaining:\(remaining)")
+                            logger?.log(level: .info, "\(sid) remaining:\(remaining)")
                         default:
                             { }()
                         }
                     }
                 }
                 
-                logger?.log("decode task end \(sid)")
+                logger?.log(level: .info, "decode task end \(sid)")
             }
             
             continuation.yield(Message.connecting)
@@ -72,7 +72,7 @@ extension MediaStream {
             socket.resume()
             
             continuation.onTermination = { _ in
-                logger?.log("continuation onTermination  \(sid)")
+                logger?.log(level: .info, "continuation onTermination  \(sid)")
                 //                t.cancel()
                 socket.cancel()
                 session.finishTasksAndInvalidate()
