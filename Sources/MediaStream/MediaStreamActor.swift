@@ -1,5 +1,5 @@
 import Foundation
 
-@globalActor actor MediaStreamActor: GlobalActor {
-    static let shared = MediaStreamActor()
+@globalActor public actor MediaStreamActor: GlobalActor {
+    public static let shared = MediaStreamActor()
 }
