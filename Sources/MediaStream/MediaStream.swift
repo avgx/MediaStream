@@ -12,6 +12,7 @@ public class MediaStream {
         case connecting
         case connected
         case frame(DecodedFrame)
+        case raw(Frame, Int, Date)    //frame, bytesLoaded, start (Date)
         case ended
         case error(Error)
         case disconnected

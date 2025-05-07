@@ -29,12 +29,14 @@ final class MediaStreamTests: XCTestCase {
                 print("connected")
             case .frame(let f):
                 print("frame \(f.decodedNumber) \(f.kBps)kB/s")
-            case .error(_):
-                print("error")
+            case .error(let e):
+                print("error \(e.localizedDescription)")
             case .disconnected:
                 print("disconnected")
             case .ended:
                 print("stopped")
+            case .raw(let frame, let frameBytes, let start):
+                print("raw next chunk \(frame.ts) bytes: \(frameBytes)")
             }
         }
         print("done")
@@ -46,9 +48,9 @@ final class MediaStreamTests: XCTestCase {
         var request = URLRequest(url: URL(string: "http://try.axxonsoft.com:8000/asip-api/ws")!)
         request.setValue("Basic cm9vdDpyb290", forHTTPHeaderField: "Authorization")
         
-        let cmd = Ws.cmdPlayLive(streamId: uuid, endpoint: "DEMOSERVER/DeviceIpint.6/SourceEndpoint.video:0:1", format: .mp4, speed: 1, keyFrames: false)
+        let cmd = Ws.cmdPlayLive(streamId: uuid, endpoint: "DEMOSERVER/DeviceIpint.6/SourceEndpoint.video:0:0", format: .mp4)
         
-        let stream = await vs.fpm4OverWs(request: request, cmd: cmd)
+        let stream = await vs.fpm4OverWsRaw(request: request, cmd: cmd)
         var n = 0
         
         for await message in stream {
@@ -69,6 +71,8 @@ final class MediaStreamTests: XCTestCase {
                 break
             case .ended:
                 print("stopped")
+            case .raw(let frame, let frameBytes, let start):
+                print("raw next chunk \(frame.ts) bytes: \(frameBytes)")
             }
         }
         print("done")
@@ -104,6 +108,8 @@ final class MediaStreamTests: XCTestCase {
                 break
             case .ended:
                 print("stopped")
+            case .raw(let frame, let frameBytes, let start):
+                print("raw next chunk \(frame.ts) bytes: \(frameBytes)")
             }
         }
         print("done")
@@ -142,6 +148,8 @@ final class MediaStreamTests: XCTestCase {
                 break
             case .ended:
                 print("stopped")
+            case .raw(let frame, let frameBytes, let start):
+                print("raw next chunk \(frame.ts) bytes: \(frameBytes)")
             }
         }
         
@@ -189,6 +197,8 @@ final class MediaStreamTests: XCTestCase {
                 break
             case .ended:
                 print("stopped")
+            case .raw(let frame, let frameBytes, let start):
+                print("raw next chunk \(frame.ts) bytes: \(frameBytes)")
             }
         }
         

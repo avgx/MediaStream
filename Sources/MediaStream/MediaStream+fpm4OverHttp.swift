@@ -81,4 +81,35 @@ extension MediaStream {
             }
         }
     }
+    
+    @MediaStreamActor
+    public func fpm4OverHttpRaw(request: URLRequest) async -> AsyncStream<Message> {
+        let sid = self.sid
+        let logger = self.logger
+        return AsyncStream(bufferingPolicy: .bufferingNewest(25)) { continuation in
+            let start = Date()
+            
+            newMessageSink = continuation
+            
+            let delegate = URLSessionDataStreamDelegate(received: { data in
+                    continuation.yield(Message.raw(MediaStream.Frame(streamId: sid, ts: Date(), isSubtitles: false, payload: data), data.count, start))
+            }, validate: { _ in
+                logger?.log(level: .info, "\(sid) connect done \(-start.timeIntervalSinceNow)")
+                continuation.yield(Message.connected)
+                return .allow
+            })
+            
+            continuation.yield(Message.connecting)
+            let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+            self.session = session
+            let socket = session.dataTask(with: request)
+            socket.resume()
+            
+            continuation.onTermination = { _ in
+                logger?.log(level: .info, "continuation onTermination  \(sid)")
+                socket.cancel()
+                session.finishTasksAndInvalidate()
+            }
+        }
+    }
 }

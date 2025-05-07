@@ -103,4 +103,54 @@ extension MediaStream {
             }
         }
     }
+    
+    @MediaStreamActor
+    public func fpm4OverWsRaw(request: URLRequest, cmd: Ws.Command) async -> AsyncStream<Message> {
+        let sid = self.sid
+        let logger = self.logger
+        return AsyncStream(bufferingPolicy: .bufferingNewest(25)) { continuation in
+            let start = Date()
+            
+            newMessageSink = continuation
+            
+            let ws: WebSocket2 = .init(request: request)
+            
+            let feed = Task { [start, ws] in //@WsActor in
+                do {
+                    try await ws.connect()
+                    logger?.log(level: .info, "\(sid) ws connect done \(-start.timeIntervalSinceNow)")
+                    continuation.yield(Message.connected)
+                    try await ws.send(cmd)
+                    
+                    for try await message in ws.messages {
+                        let frame = try Ws.parse(data: message)
+                        if frame.isStopped {
+                            continuation.yield(Message.ended)
+                            break
+                        }
+                        if Task.isCancelled {
+                            break
+                        }
+                        continuation.yield(Message.raw(frame, message.count, start))
+                    }
+                    logger?.log(level: .info, "\(sid) ws read done")
+                    try ws.disconnect()
+                    continuation.yield(Message.disconnected)
+                    continuation.finish()
+                } catch {
+                    logger?.log(level: .info, "\(sid) ws messages error \(error.localizedDescription)!")
+                    continuation.finish()
+                }
+            }
+            
+            continuation.yield(Message.connecting)
+            self.ws = ws
+            
+            continuation.onTermination = { [weak self] _ in
+                logger?.log(level: .info, "continuation onTermination \(sid)")
+                self?.ws = nil
+                feed.cancel()
+            }
+        }
+    }
 }
