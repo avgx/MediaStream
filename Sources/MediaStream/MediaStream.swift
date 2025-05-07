@@ -26,10 +26,10 @@ public class MediaStream {
     }
     
     public struct Frame {
-        let streamId: UUID
-        let ts: Date
-        let isSubtitles: Bool
-        let payload: Data
+        public let streamId: UUID
+        public let ts: Date
+        public let isSubtitles: Bool
+        public let payload: Data
         
         public var isStopped: Bool {
             return ts > .distantFuture
